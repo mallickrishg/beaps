@@ -94,8 +94,10 @@ s_n = solvec(rcv.N+1:2*rcv.N);
 % |tau_d_0 + Kdd.δs_d| <= f|tau_n_0 + Kdn.δs_d|
 % let's start the solve by neglecting (Kdn.δs_d)
 % if tau_d_0 > 0,
-% Kdd.δs_d <= f|tau_n_0| - tau_d_0
-% tau_d_0 + Kdd.δs_d >= 0 
+% the KKT conditions are:
+% (1) Kdd.δs_d <= f|tau_n_0| - tau_d_0
+% (2) tau_d_0 + Kdd.δs_d >= 0 
+% (3) (δs_d)(Kdd.δs_d - f|tau_n_0| + tau_d_0) = 0 (complementarity condition)
 
 
 
