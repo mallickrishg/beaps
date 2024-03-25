@@ -61,7 +61,7 @@ BC_2(ind) = bc_right(2);
 
 % interior
 ind = rcv.Vpl==4;
-BC_1(ind) = f*rhog*rcv.xc(ind,2);
+BC_1(ind) = 0;%f*rhog*rcv.xc(ind,2);
 BC_2(ind) = 0;
 
 BCvec = [BC_1;BC_2];
@@ -78,8 +78,8 @@ ind = rcv.Vpl == 4;
 
 % tau_d = [Kdd(ind,:),Knd(ind,:)]*[s_d;s_n]
 % tau_n = [Kdn(ind,:),Knn(ind,:)]*[s_d;s_n]
-K_tau_d = [Kdd(ind,:),Knd(ind,:)];
-K_tau_n = [Kdn(ind,:),Knn(ind,:)];
+% K_tau_d = [Kdd(ind,:),Knd(ind,:)];
+% K_tau_n = [Kdn(ind,:),Knn(ind,:)];
 
 % we want to impose:
 % |tau_d| <= f|tau_n|
@@ -99,8 +99,30 @@ s_n = solvec(rcv.N+1:2*rcv.N);
 % (2) tau_d_0 + Kdd.δs_d >= 0 
 % (3) (δs_d)(Kdd.δs_d - f|tau_n_0| + tau_d_0) = 0 (complementarity condition)
 
+K = Kdd(ind,ind);
+tau_d = [Kdd(ind,:),Knd(ind,:)]*[s_d;s_n];
+tau_n = [Kdn(ind,:),Knn(ind,:)]*[s_d;s_n];
+p = 3*rcv.xc(ind,2);
+sigma_n = abs(p + tau_n);
 
+index = tau_d>=0;
+% (tau_d(index) + K(index,:).δs_d) <= f*sigma_n
+% (1) tau_d(index) + K(index,:).δs_d - f*sigma_n <= 0
+% rewrite as -K(index,:).z + (f*sigma_n) - tau_d(index) >= 0
+% 
+% for tau_d<0
+% -(tau_d(~index) + K(~index,:).δs_d) <= f*sigma_n
+% (2) (tau_d(~index) + K(~index,:).δs_d) + f*sigma_n >= 0
+% rewrite as K(~index,:).z + (f*sigma_n + tau_d(~index)) >= 0
+% 
+% problem is how to work with opposite signs of z?
+q = [f*sigma_n(index)-tau_d(index);...
+     f*sigma_n(~index)+tau_d(~index)];
+M = [-K(index,:);K(~index,:)];
+% q = f*sigma_n(~index)+tau_d(~index);
+% M = K(~index,~index);
 
+[w,z,retcode] = LCPSolve(M,q);
 
 
 end
